@@ -168,7 +168,7 @@ local IMAGE_PATH = HOME_PATH .. '/tmp/pandoc/Figures/'
 local DEFAULT_FONT = 'fbb'
 
 
-function latex(text)
+function Latex(text)
     return pandoc.RawInline("latex", text)
 end
 
@@ -179,33 +179,33 @@ local MARGIN_STYLE = "max-width:20%; border: 1px solid black; padding: 1ex; " ..
 
 local LATEX_TEXT = {}
 LATEX_TEXT.block_comment = {}
-LATEX_TEXT.block_comment.Open = latex(string.format('\\color{%s}{}',
+LATEX_TEXT.block_comment.Open = Latex(string.format('\\color{%s}{}',
                                       COLORS.block_comment))
-LATEX_TEXT.block_comment.Close = latex('\\color{black}{}')
+LATEX_TEXT.block_comment.Close = Latex('\\color{black}{}')
 LATEX_TEXT.block_box = {}
-LATEX_TEXT.block_box.Open = latex('\\medskip\\begin{mdframed}')
-LATEX_TEXT.block_box.Close = latex('\\end{mdframed}\\medskip{}')
+LATEX_TEXT.block_box.Open = Latex('\\medskip\\begin{mdframed}')
+LATEX_TEXT.block_box.Close = Latex('\\end{mdframed}\\medskip{}')
 LATEX_TEXT.block_center = {}
-LATEX_TEXT.block_center.Open = latex('\\begin{center}')
-LATEX_TEXT.block_center.Close = latex('\\end{center}')
+LATEX_TEXT.block_center.Open = Latex('\\begin{center}')
+LATEX_TEXT.block_center.Close = Latex('\\end{center}')
 LATEX_TEXT.comment = {}
-LATEX_TEXT.comment.Open = latex(string.format('\\textcolor{%s}{',
+LATEX_TEXT.comment.Open = Latex(string.format('\\textcolor{%s}{',
                                               COLORS.comment))
-LATEX_TEXT.comment.Close = latex('}')
+LATEX_TEXT.comment.Close = Latex('}')
 LATEX_TEXT.highlight = {}
-LATEX_TEXT.highlight.Open = latex('\\hl{')
-LATEX_TEXT.highlight.Close = latex('}')
+LATEX_TEXT.highlight.Open = Latex('\\hl{')
+LATEX_TEXT.highlight.Close = Latex('}')
 LATEX_TEXT.margin = {}
-LATEX_TEXT.margin.Open = latex(string.format(
+LATEX_TEXT.margin.Open = Latex(string.format(
             '\\marginpar{\\begin{flushleft}\\scriptsize{\\textcolor{%s}{',
             COLORS.margin))
-LATEX_TEXT.margin.Close = latex('}}\\end{flushleft}}')
+LATEX_TEXT.margin.Close = Latex('}}\\end{flushleft}}')
 LATEX_TEXT.fixme = {}
-LATEX_TEXT.fixme.Open = latex(string.format(
+LATEX_TEXT.fixme.Open = Latex(string.format(
             '\\marginpar{\\scriptsize{\\textcolor{%s}{Fix this!}}}\\textcolor{%s}{',
             COLORS.fixme, COLORS.fixme))
-LATEX_TEXT.fixme.Close = latex('}')
-LATEX_TEXT.noindent = latex('\\noindent{}')
+LATEX_TEXT.fixme.Close = Latex('}')
+LATEX_TEXT.noindent = Latex('\\noindent{}')
 LATEX_TEXT.l = {}
 LATEX_TEXT.l.Open = '\\label{'
 LATEX_TEXT.l.Close = '}'
@@ -367,12 +367,12 @@ local HIGHLIGHT_DEFAULT = pandoc.MetaInlines({pandoc.Str('print')})
 -- local CURRENT_INLINE_COLOR = nil
 
 
-function isCommentBlock(text)
+function IsCommentBlock(text)
     return text == 'comment' or text == 'box' or text == 'center'
 end
 
 
-function isHTML(format)
+function IsHTML(format)
     -- Returns true/false if format is one that uses HTML
     if format == "html5" or format == "html" or format == "html4"  then
         return true
@@ -382,7 +382,7 @@ function isHTML(format)
 end
 
 
-function isLaTeX(format)
+function IsLaTeX(format)
     -- Returns true/false if format is one that uses LaTeX
     if format == "latex" or format == "beamer" then
         return true
@@ -392,13 +392,13 @@ function isLaTeX(format)
 end
 
 
-function isWord(text)
+function IsWord(text)
     -- Returns true/false if text contains word characters (not just punctuation)
     return text:match("%P")
 end
 
 
-function getYAML(meta)
+function GetYAML(meta)
     -- Record metadata for later use, and count words.
     for key, value in pairs(meta) do
         YAML_VARS[key] = value
@@ -408,7 +408,7 @@ function getYAML(meta)
                 for _, block in pairs(value) do
                     pandoc.walk_block(block, {
                         Str = function(string)
-                            if isWord(string.text) then
+                            if IsWord(string.text) then
                                 YAML_WORDS = YAML_WORDS + 1
                                 if key == "abstract" then
                                     ABSTRACT_COUNT = ABSTRACT_COUNT + 1
@@ -420,14 +420,14 @@ function getYAML(meta)
             elseif value.t == "MetaList" then
                 for _, item in pairs(value) do
                     for _, inline in pairs(item) do
-                        if inline.t == "Str" and isWord(inline.text) then
+                        if inline.t == "Str" and IsWord(inline.text) then
                             YAML_WORDS = YAML_WORDS + 1
                         end
                     end
                 end
             elseif value.t == "MetaInlines" then
                 for _, inline in pairs(value) do
-                    if inline.t == "Str" and isWord(inline.text) then
+                    if inline.t == "Str" and IsWord(inline.text) then
                         YAML_WORDS = YAML_WORDS + 1
                         if key == "abstract" then
                             ABSTRACT_COUNT = ABSTRACT_COUNT + 1
@@ -455,24 +455,24 @@ function getYAML(meta)
 end
 
 
-function setYAML(meta)
+function SetYAML(meta)
     -- Revise document metadata as appropriate; print detailed wordcount.
     if FORMAT == "markdown" then  -- Don't change anything if translating to .md
         return
-    elseif BOX_USED and (isLaTeX(FORMAT)) then  -- Need to add package for LaTeX
-        local rawInlines = {pandoc.MetaInlines({latex("\\RequirePackage{mdframed}")})}
+    elseif BOX_USED and (IsLaTeX(FORMAT)) then  -- Need to add package for LaTeX
+        local rawInlines = {pandoc.MetaInlines({Latex("\\RequirePackage{mdframed}")})}
         if meta["header-includes"] == nil then
             meta["header-includes"] = pandoc.MetaList(rawInlines)
         else
             table.insert(meta["header-includes"], pandoc.MetaList(rawInlines))
         end
     end
-    if isLaTeX(FORMAT) and (
+    if IsLaTeX(FORMAT) and (
             pandoc.utils.stringify(YAML_VARS.comment) == 'draft' or
             pandoc.utils.stringify(YAML_VARS.margin) == 'draft' or
             pandoc.utils.stringify(YAML_VARS.fixme) == 'draft'
             ) then  -- Need to add package for Latex
-        local rawInlines = {pandoc.MetaInlines({latex("\\RequirePackage{xcolor}")})}
+        local rawInlines = {pandoc.MetaInlines({Latex("\\RequirePackage{xcolor}")})}
         if meta["header-includes"] == nil then
             meta["header-includes"] = pandoc.MetaList(rawInlines)
         else
@@ -498,7 +498,7 @@ local function fileExists(name)
 end
 
 
-function handleTransclusion(para)
+function HandleTransclusion(para)
     -- Process file transclusion
     if FORMAT == "markdown" then  -- Don't change anything if translating to .md
         return
@@ -524,17 +524,17 @@ function handleTransclusion(para)
 end
 
 
-function handleNoIndent(para)
+function HandleNoIndent(para)
     if FORMAT == "markdown" then  -- Don't change anything if translating to .md
         return
     elseif #para.content > 2 and
            para.content[1].text == "<" and
            para.content[2].t == 'Space' then
         -- Don't indent paragraph that starts with "< "
-        if isLaTeX(FORMAT) then
+        if IsLaTeX(FORMAT) then
             return pandoc.Para({LATEX_TEXT.noindent,
                                table.unpack(para.content, 3, #para.content)})
-        elseif isHTML(FORMAT) then
+        elseif IsHTML(FORMAT) then
             return pandoc.Plain({HTML_TEXT.noindent,
                                 table.unpack(para.content, 3, #para.content)})
         elseif FORMAT == "revealjs" then
@@ -548,7 +548,7 @@ function handleNoIndent(para)
 end
 
 
-local function imageOutdated(original, imageFile)
+local function ImageOutdated(original, imageFile)
     -- Takes two filepaths and checks to see if original is newer than
     -- imageFile (if imageFile is outdated). Returns `true` if outdated.
     local f = io.popen('stat -f %m "' .. original .. '"')
@@ -569,7 +569,7 @@ local function imageOutdated(original, imageFile)
 end
 
 
-function convertImage(imageToConvert, convertedImage)
+function ConvertImage(imageToConvert, convertedImage)
     -- Converts image to new file format
     if os.execute("convert -density 300 " .. imageToConvert ..
                " -quality 100 " .. convertedImage) then
@@ -582,7 +582,7 @@ function convertImage(imageToConvert, convertedImage)
 end
 
 
-function typeset(outputLocation, filehead, filetype, codeType)
+function Typeset(outputLocation, filehead, filetype, codeType)
     -- filetype is the desired output filetype (`.pdf` or `.png`).
     local success = nil
     if codeType == "dot" then
@@ -601,13 +601,13 @@ function typeset(outputLocation, filehead, filetype, codeType)
 end
 
 
-function handleImages(image)
+function HandleImages(image)
     -- This will check if an image is online, and will download it; if it is a
     -- .tex or .dot file, it will typeset it. Having done this, it will convert
     -- to the proper filetype for desired output. pandoc.Image =
     -- {{"identifier", "classes", "attributes"}, "caption", {"src", "title"}}
     local filetype = ".png"
-    if isLaTeX(FORMAT) then
+    if IsLaTeX(FORMAT) then
         filetype = ".pdf"
     end
     local imageFile = image.src
@@ -640,7 +640,7 @@ function handleImages(image)
         -- Convert image if necessary....
         if imageExtension ~= filetype and
                 not fileExists(imageBaseName .. filetype) then
-            convertImage(imageBaseName .. imageExtension, imageBaseName .. filetype)
+            ConvertImage(imageBaseName .. imageExtension, imageBaseName .. filetype)
         end
     else  --Local image.
         -- Pandoc gives filename with spaces represented by '%20'. Need to
@@ -675,12 +675,12 @@ function handleImages(image)
             imageBaseName = string.gsub(imageBaseName, "%%20", "_")
             local newImageFile = IMAGE_PATH .. imageBaseName .. newImageExtension
             -- Typeset image if necessary, or copy to IMAGE_PATH
-            if not fileExists(newImageFile) or imageOutdated(imageFile,
+            if not fileExists(newImageFile) or ImageOutdated(imageFile,
                     newImageFile) then
                 if imageExtension == ".tex" then  -- i.e., if it's LaTeX file...
-                    typeset(IMAGE_PATH, imageFile, filetype, "tex")
+                    Typeset(IMAGE_PATH, imageFile, filetype, "tex")
                 elseif imageExtension == ".dot" then
-                    typeset(newImageFile, imageFile, filetype, "dot")
+                    Typeset(newImageFile, imageFile, filetype, "dot")
                 else
                     if os.execute('cp -f "' .. imageFile .. '" "' .. newImageFile
                             .. '"') then
@@ -695,9 +695,9 @@ function handleImages(image)
             imageBaseName = IMAGE_PATH .. imageBaseName
             -- Convert image if necessary....
             if newImageExtension ~= filetype and (not fileExists(imageBaseName ..
-                    filetype) or imageOutdated(imageFile, imageBaseName .. filetype))
+                    filetype) or ImageOutdated(imageFile, imageBaseName .. filetype))
                     then
-                convertImage(imageFile, imageBaseName .. filetype)
+                ConvertImage(imageFile, imageBaseName .. filetype)
             end
         end
     end
@@ -707,7 +707,7 @@ function handleImages(image)
 end
 
 
-function tikz2image(tikz, filetype, outfile)
+function Tikz2image(tikz, filetype, outfile)
     -- Given text of a TikZ LaTeX image, create an image of given filetype in
     -- given location.
     local tmphead = os.tmpname()
@@ -715,36 +715,36 @@ function tikz2image(tikz, filetype, outfile)
     local f = io.open(tmphead .. ".tex", 'w')
     f:write(tikz)
     f:close()
-    typeset(tmpdir, tmphead, filetype, "tex")
+    Typeset(tmpdir, tmphead, filetype, "tex")
     if filetype == '.pdf' then
         os.rename(tmphead .. ".pdf", outfile)
     else
-        convertImage(tmphead .. '.pdf', outfile)
+        ConvertImage(tmphead .. '.pdf', outfile)
     end
     os.remove(tmphead .. ".tex")
     os.remove(tmphead .. ".pdf")
 end
 
 
-function dot2image(dot, filetype, outfile)
+function Dot2Image(dot, filetype, outfile)
     -- Given text of a GraphViz image, create an image of given filetype in
     -- given location.
     local tmpfile = os.tmpname()
     local f = io.open(tmpfile, 'w')
     f:write(dot)
     f:close()
-    typeset(outfile, tmpfile, filetype, "dot")
+    Typeset(outfile, tmpfile, filetype, "dot")
     if filetype ~= '.pdf' then
         os.rename(tmpfile .. ".pdf", outfile)
     else
-        convertImage(tmpfile .. '.pdf', outfile)
+        ConvertImage(tmpfile .. '.pdf', outfile)
     end
     os.remove(tmpfile)
     os.remove(tmpfile .. ".pdf")
 end
 
 
-function generateImage(code, format)
+function GenerateImage(code, format)
     local font = ''
     if format == 'tikz' then
         font = DEFAULT_FONT
@@ -753,7 +753,7 @@ function generateImage(code, format)
         end
     end
     local filetype = ".png"
-    if isLaTeX(FORMAT) then
+    if IsLaTeX(FORMAT) then
         filetype = ".pdf"
     end
     local outfile = IMAGE_PATH .. pandoc.sha1(code.text .. font) .. filetype
@@ -775,9 +775,9 @@ function generateImage(code, format)
             end
             codeHeader = codeHeader .. "\\begin{document}\n"
             local codeFooter = "\n\\end{document}\n"
-            tikz2image(codeHeader .. code.text .. codeFooter, filetype, outfile)
+            Tikz2image(codeHeader .. code.text .. codeFooter, filetype, outfile)
         elseif format == 'dot' then
-            dot2image(code.text, filetype, outfile)
+            Dot2Image(code.text, filetype, outfile)
         end
         print('Created image ' .. outfile)
     else
@@ -801,19 +801,19 @@ function generateImage(code, format)
 end
 
 
-function handleCode(code)
+function HandleCode(code)
     if code.classes[1] == 'tikz' then
-        return generateImage(code, 'tikz')
+        return GenerateImage(code, 'tikz')
     elseif code.classes[1] == 'dot' then
-        return generateImage(code, 'dot')
+        return GenerateImage(code, 'dot')
     end
 end
 
 
-function handleBlocks(block)
+function HandleBlocks(block)
     if FORMAT == "markdown" then  -- Don't change anything if translating to .md
         return
-    elseif isCommentBlock(block.classes[1]) then
+    elseif IsCommentBlock(block.classes[1]) then
         if block.classes[1] == "comment" then
             if pandoc.utils.stringify(YAML_VARS[block.classes[1]]) == 'hide' then
                 return {}
@@ -821,7 +821,7 @@ function handleBlocks(block)
                 return block.content
             end
         end
-        if isLaTeX(FORMAT) then
+        if IsLaTeX(FORMAT) then
             if block.classes[1] == "box" then
                 BOX_USED = true
             end
@@ -835,7 +835,7 @@ function handleBlocks(block)
                 {pandoc.Plain({LATEX_TEXT["block_" .. block.classes[1]].Open})} ..
                 block.content ..
                 {pandoc.Plain({LATEX_TEXT["block_" .. block.classes[1]].Close})}
-        elseif isHTML(FORMAT) then
+        elseif IsHTML(FORMAT) then
             return
                 {pandoc.Plain({HTML_TEXT["block_" .. block.classes[1]].Open})} ..
                 block.content ..
@@ -855,7 +855,7 @@ function handleBlocks(block)
 end
 
 
--- function handleMacros(math)
+-- function HandleMacros(math)
 --     if YAML_VARS.macros then
 --         for key, value in pairs(YAML_VARS.macros[1]) do
 --             if math.text == key then
@@ -866,7 +866,7 @@ end
 -- end
 
 
-function handleInlines(span)
+function HandleInlines(span)
     if FORMAT == "markdown" then  -- Don't change anything if translating to .md
         return
     end
@@ -880,12 +880,12 @@ function handleInlines(span)
             return span.content
         end
         -- In this case, we want to print with draft markup
-        if isLaTeX(FORMAT) then
+        if IsLaTeX(FORMAT) then
             return
                 {LATEX_TEXT[spanType].Open} ..
                 span.content ..
                 {LATEX_TEXT[spanType].Close}
-        elseif isHTML(FORMAT) then
+        elseif IsHTML(FORMAT) then
             return
                 {HTML_TEXT[spanType].Open} ..
                 span.content ..
@@ -905,8 +905,8 @@ function handleInlines(span)
         return pandoc.SmallCaps(span.content)
     elseif spanType == "i" then
         -- Process indexing ...
-        if isLaTeX(FORMAT) then
-            return {latex("\\index{" .. pandoc.utils.stringify(span) .. "}")}
+        if IsLaTeX(FORMAT) then
+            return {Latex("\\index{" .. pandoc.utils.stringify(span) .. "}")}
         elseif FORMAT == 'docx' then
             print(span.content)
             local indexItem = pandoc.utils.stringify(span.content)
@@ -923,12 +923,12 @@ function handleInlines(span)
     elseif spanType == "l" or spanType == "r" or spanType == "rp" then
         -- Process cross-references ...
         content = pandoc.utils.stringify(span.content)
-        if isLaTeX(FORMAT) then
-            return {latex(
+        if IsLaTeX(FORMAT) then
+            return {Latex(
                 LATEX_TEXT[spanType].Open ..
                 content ..
                 LATEX_TEXT[spanType].Close)}
-        elseif isHTML(FORMAT) then
+        elseif IsHTML(FORMAT) then
             return {html(
                 HTML_TEXT[spanType].Open ..
                 content ..
@@ -948,10 +948,10 @@ function handleInlines(span)
 end
 
 
-function handleNotes(note)
+function HandleNotes(note)
     return pandoc.walk_inline(note, {
         Str = function(string)
-            if isWord(string.text) then
+            if IsWord(string.text) then
                 NOTE_COUNT = NOTE_COUNT + 1
             end
             return
@@ -959,8 +959,8 @@ function handleNotes(note)
 end
 
 
-function handleStrings(string)
-    if isWord(string.text) then  -- If string contains non-punctuation chars
+function HandleStrings(string)
+    if IsWord(string.text) then  -- If string contains non-punctuation chars
         WORD_COUNT = WORD_COUNT + 1  -- ... count it.
     end
     return
@@ -968,27 +968,27 @@ end
 
 -- local inspect = require 'inspect'
 
-function handleQuotes(qstring)
+function HandleQuotes(qstring)
     -- FIXME: This doesn't handle nested quotes. I think I need to walk the
     -- inline content of the quote, and assign all subsequent quotes to
     -- `\enquote{}` rather than `\blockquote{}`, but I can't figure out the
     -- syntax of it.
-    if isLaTeX(FORMAT) then
+    if IsLaTeX(FORMAT) then
         print(qstring.content[1].text)
         print(qstring.counter)
         -- print(inspect(qstring.content))
         if qstring.level == 1 then
-            table.insert(qstring.content, 1, latex("\\enquote{"))
+            table.insert(qstring.content, 1, Latex("\\enquote{"))
         else
-            table.insert(qstring.content, 1, latex("\\blockquote{"))
+            table.insert(qstring.content, 1, Latex("\\blockquote{"))
         end
-        table.insert(qstring.content, latex("}"))
+        table.insert(qstring.content, Latex("}"))
         qstring.level = 1
-        value = pandoc.walk_inline(qstring, {Quoted = handleQuotes})
+        value = pandoc.walk_inline(qstring, {Quoted = HandleQuotes})
                 -- { Quoted = function(qstring)
                 --     table.remove(qstring.content,1)
-                --     -- table.insert(qstring.content, 1, latex("\\enquote*{"))
-                --     table.insert(qstring.content, 1, latex("\\enquote{"))
+                --     -- table.insert(qstring.content, 1, Latex("\\enquote*{"))
+                --     table.insert(qstring.content, 1, Latex("\\enquote{"))
                 --     return qstring.content
                 -- end })
         return value.content
@@ -1021,19 +1021,19 @@ end
 
 -- Order matters here!
 local COMMENT_FILTER = {
-    {Meta = getYAML},             -- This comes first to read metadata values
-    {Para = handleTransclusion},  -- Transclusion before other filters
-    {Para = handleNoIndent},      -- Non-indented paragraphs (after transclusion)
-    {CodeBlock = handleCode},     -- Convert TikZ images (before Image)
-    {Div = handleBlocks},         -- Comment blocks (before inlines)
+    {Meta = GetYAML},             -- This comes first to read metadata values
+    {Para = HandleTransclusion},  -- Transclusion before other filters
+    {Para = HandleNoIndent},      -- Non-indented paragraphs (after transclusion)
+    {CodeBlock = HandleCode},     -- Convert TikZ images (before Image)
+    {Div = HandleBlocks},         -- Comment blocks (before inlines)
     -- {Inlines = Inlines},
-    {Image = handleImages},       -- Images (so captions get inline filters)
-    -- {Math = handleMacros},        -- Replace macros from YAML data
-    -- {Quoted = handleQuotes},      -- LaTeX: auto use csquotes' `\blockquote`
-    {Span = handleInlines},       -- Comment and cross-ref inlines
-    {Note = handleNotes},         -- Count words
-    {Str = handleStrings},        -- Count words
-    {Meta = setYAML}              -- This comes last to rewrite YAML
+    {Image = HandleImages},       -- Images (so captions get inline filters)
+    -- {Math = HandleMacros},        -- Replace macros from YAML data
+    -- {Quoted = HandleQuotes},      -- LaTeX: auto use csquotes' `\blockquote`
+    {Span = HandleInlines},       -- Comment and cross-ref inlines
+    {Note = HandleNotes},         -- Count words
+    {Str = HandleStrings},        -- Count words
+    {Meta = SetYAML}              -- This comes last to rewrite YAML
 }
 
 return COMMENT_FILTER
